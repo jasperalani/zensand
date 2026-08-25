@@ -1,5 +1,7 @@
 # Colour Palette
 
+Part of the [Digital Zen Garden](README.md).
+
 | Name | Hex | Use |
 | --- | --- | --- |
 | Almond Cream | `#f1dac4` | Sand |
