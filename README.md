@@ -6,6 +6,7 @@ A relaxing sand simulator website. A round, flat-bottomed ceramic plate with sho
 
 - [status.md](status.md) — project steps and progress
 - [variables.md](variables.md) — colour palette
+- [skybox.md](skybox.md) — skybox setup, requirements and texture sources
 
 ## Look
 

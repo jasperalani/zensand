@@ -148,6 +148,8 @@ export function createSand(): Sand {
     color: SAND_COLOR,
     roughness: 1,
     metalness: 0,
+    bumpMap: makeGrainTexture(),
+    bumpScale: 2.2,
   })
   const mesh = new THREE.Mesh(geometry, material)
   mesh.receiveShadow = true
@@ -226,6 +228,31 @@ export function createSand(): Sand {
       dirty = true
     },
   }
+}
+
+/**
+ * Grain bump map: per-pixel random noise, slightly blurred, tiled across
+ * the sand so the surface reads as coarse granular sand instead of cloth.
+ */
+function makeGrainTexture(): THREE.Texture {
+  const size = 256
+  const grain = 2 // pixels per sand grain — bigger = coarser
+  const cells = size / grain
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  for (let y = 0; y < cells; y++) {
+    for (let x = 0; x < cells; x++) {
+      const v = Math.floor(128 + (Math.random() - 0.5) * 240)
+      ctx.fillStyle = `rgb(${v},${v},${v})`
+      ctx.fillRect(x * grain, y * grain, grain, grain)
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.set(8, 8)
+  texture.anisotropy = 8
+  return texture
 }
 
 /**
