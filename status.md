@@ -21,8 +21,7 @@ Steps for completing the Digital Zen Garden.
 
 ### Step 2 — The sand ✅
 - Height field: 200×200 grid over the plate's inner circle; vertices outside the circle are masked inactive and act as walls (no flow), with rim mesh vertices clamped onto the circle so the surface renders as a disc
-- Initialised ~80% of wall height with desert-like dunes: three-octave value noise (broad swells + finer ripples) over the whole surface, randomised seed and offsets each load, pre-settled to the repose angle before the first frame
-- Wall cling: near the rim the sand rises slightly to meet the wall, with height varying around the circumference (noise sampled on the rim angle, smoothstep blend inward) so the sand/wall meeting line reads as drifted sand, not an even ring
+- Initialised ~80% of wall height with desert-like dunes: three-octave value noise (broad swells + finer ripples) over the whole surface, randomised seed and offsets each load, pre-settled to the repose angle before the first frame; the sand meets the wall at whatever height the dunes have there
 - Toppling simulation: neighbouring cells steeper than the 33° angle of repose move sand downhill each frame (Gauss–Seidel passes over the 8-neighbourhood, diagonal threshold scaled by √2 so cones settle round); sleeps when fully settled and wakes via `markDirty()`
 - Rendering: `PlaneGeometry` displaced from the height field each dirty frame, recomputed normals, casts/receives shadows
 - Sand colour: Almond Cream `#f1dac4`, matte cartoon-like shading
