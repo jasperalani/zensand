@@ -19,12 +19,12 @@ Steps for completing the Digital Zen Garden.
 - Orbit camera: starts at the oblique side-down angle from the reference image (~30° elevation); drag to circle the plate 360°, scroll to zoom. Elevation clamped between 15° and 75° from vertical, zoom clamped to a comfortable range, panning disabled so the plate stays centred
 - Walls act as boundaries: sand piles up against them (enforced by the sand sim in Step 2)
 
-### Step 2 — The sand ⬜
-- Height-field grid covering the plate interior; cells outside the round rim masked as inactive walls
-- Initialise ~80% filled with a natural, slightly uneven sand surface
-- Toppling/settling simulation (angle of repose) running each frame
-- Displace plane mesh from the height field; light from one side so bumps and furrows read clearly
-- Sand colour: Almond Cream `#f1dac4`, soft cartoon-like shading
+### Step 2 — The sand ✅
+- Height field: 200×200 grid over the plate's inner circle; vertices outside the circle are masked inactive and act as walls (no flow), with rim mesh vertices clamped onto the circle so the surface renders as a disc
+- Initialised ~80% of wall height, with gentle two-octave value noise for a naturally settled look
+- Toppling simulation: neighbouring cells steeper than the 33° angle of repose move sand downhill each frame (Gauss–Seidel passes); sleeps when fully settled and wakes via `markDirty()`
+- Rendering: `PlaneGeometry` displaced from the height field each dirty frame, recomputed normals, casts/receives shadows
+- Sand colour: Almond Cream `#f1dac4`, matte cartoon-like shading
 
 ### Step 3 — Pouring sand ⬜
 - Click (or click-hold) anywhere on the plate to pour sand from above
