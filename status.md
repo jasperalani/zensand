@@ -16,7 +16,7 @@ Steps for completing the Digital Zen Garden.
 ### Step 1 — The plate ✅
 - Plate modelled in 3D (lathe geometry): round, flat bottom, short walls with inward-stepped rim, shape from the reference image
 - Plate colour: Lilac Ash `#a69cac`, soft cartoon-like shading (matte material, strong ambient fill + gentle key light)
-- Fixed camera at the oblique side-down angle from the reference image (~30° elevation)
+- Orbit camera: starts at the oblique side-down angle from the reference image (~30° elevation); drag to circle the plate 360°, scroll to zoom. Elevation clamped between 15° and 75° from vertical, zoom clamped to a comfortable range, panning disabled so the plate stays centred
 - Walls act as boundaries: sand piles up against them (enforced by the sand sim in Step 2)
 
 ### Step 2 — The sand ⬜

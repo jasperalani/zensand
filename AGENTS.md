@@ -2,7 +2,7 @@
 
 ## Project
 
-Digital Zen Garden: a relaxing sand simulator website. A round ceramic plate (see plate-reference-image.jpg) ~80% filled with sand, viewed from a fixed oblique side-down camera. Click to pour sand, drag a rake to carve furrows.
+Digital Zen Garden: a relaxing sand simulator website. A round ceramic plate (see plate-reference-image.jpg) ~80% filled with sand, viewed from an orbitable oblique side-down camera (360° around the plate, clamped elevation and zoom). Click to pour sand, drag a rake to carve furrows.
 
 - Stack: Vite + TypeScript + Three.js
 - Simulation: 2D height-field grid (sandpile / angle-of-repose toppling)

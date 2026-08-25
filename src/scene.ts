@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { PLATE_RADIUS } from './plate.ts'
 
 const BACKGROUND_COLOR = 0xf1dac4 // Almond Cream backdrop for now
@@ -28,6 +29,20 @@ export function createScene(canvas: HTMLCanvasElement) {
   )
   camera.lookAt(0, 0, 0)
 
+  // Orbit controls: drag to circle the plate 360°, scroll to zoom.
+  // Elevation is clamped so the view stays between near-top-down and
+  // just above the rim, and zoom stays within a comfortable range.
+  const controls = new OrbitControls(camera, canvas)
+  controls.target.set(0, 0, 0)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.08
+  controls.minPolarAngle = THREE.MathUtils.degToRad(15)
+  controls.maxPolarAngle = THREE.MathUtils.degToRad(75)
+  controls.minDistance = PLATE_RADIUS * 2
+  controls.maxDistance = PLATE_RADIUS * 8
+  controls.enablePan = false
+  controls.update()
+
   // Soft, cartoon-like lighting: strong ambient fill, one gentle key light
   // from the upper left so relief reads without harsh contrast.
   const ambient = new THREE.AmbientLight(0xffffff, 1.9)
@@ -55,5 +70,5 @@ export function createScene(canvas: HTMLCanvasElement) {
   window.addEventListener('resize', resize)
   resize()
 
-  return { renderer, scene, camera }
+  return { renderer, scene, camera, controls }
 }
