@@ -28,6 +28,13 @@ const DUNE_AMPLITUDE = 0.55
 /** Base frequency of the dune noise — lower = broader dunes. */
 const DUNE_FREQUENCY = 1.6
 
+/** How far the wall cling reaches inward, relative to the plate inner radius. */
+const CLING_WIDTH = 0.1
+
+/** Wall cling height range, relative to rest depth (varies around the rim). */
+const CLING_MIN = 0.05
+const CLING_MAX = 0.35
+
 /** World size of the grid: spans the plate interior. */
 const WORLD_SIZE = 2 * PLATE_INNER_RADIUS
 
@@ -116,6 +123,21 @@ export function createSand(): Sand {
         noise(ox + 13 + x * f * 2.7, oz + 41 + z * f * 2.7) * 0.3 +
         noise(ox + 71 + x * f * 6.1, oz + 23 + z * f * 6.1) * 0.15
       heights[idx] = REST_DEPTH * (1 + DUNE_AMPLITUDE * (n * 2 - 1))
+
+      // Wall cling: sand drifts up slightly where it meets the wall, with
+      // the height varying around the rim so the meeting line looks like
+      // wind-blown sand rather than a machined ring.
+      const r = Math.hypot(x, z)
+      const t = (r - (1 - CLING_WIDTH)) / CLING_WIDTH
+      if (t > 0) {
+        const angle = Math.atan2(z, x)
+        const around =
+          noise(ox + 31 + Math.cos(angle) * 2.4, oz + 57 + Math.sin(angle) * 2.4)
+        const clingHeight = CLING_MIN + (CLING_MAX - CLING_MIN) * around
+        // Smoothstep ease-in so the cling blends seamlessly into the dunes.
+        const blend = t * t * (3 - 2 * t)
+        heights[idx] += REST_DEPTH * clingHeight * blend
+      }
     }
   }
 
