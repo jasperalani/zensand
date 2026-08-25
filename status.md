@@ -14,6 +14,7 @@ Steps for completing the Digital Zen Garden.
 - Vite + TypeScript + Three.js project scaffolded, dependencies installed
 
 ### Step 1 — The plate ✅
+- Skybox background: equirectangular panorama at src/skybox/skybox_equirect.png loaded as `scene.background` (swap the image file to change the skybox — any 2:1 equirect PNG with that name just works)
 - Plate modelled in 3D (lathe geometry): round, flat bottom, short walls with inward-stepped rim, shape from the reference image
 - Plate colour: Lilac Ash `#a69cac`, soft cartoon-like shading (matte material, strong ambient fill + gentle key light)
 - Orbit camera: starts at the oblique side-down angle from the reference image (~30° elevation); drag to circle the plate 360°, scroll to zoom. Elevation clamped between 15° and 75° from vertical, zoom clamped to a comfortable range, panning disabled so the plate stays centred
