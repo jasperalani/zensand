@@ -53,6 +53,12 @@ Steps for completing the Digital Zen Garden.
 - Sound? Soft raking/pouring audio, off by default
 - Ambient touches: subtle grain texture, maybe a stone or two to rake around
 
+### Step 8 — Room environment ⬜
+- Model a whole room (floor, walls, ceiling, simple furnishings/lighting to taste) replacing the skybox background
+- Add a table and place the plate on it instead of floating in space
+- Rework lighting to suit an interior (also resolves the placeholder skybox's nadir pinch)
+- Keep the orbit camera centred on the plate; clamp zoom/angles so the camera stays inside the room
+
 ## Future ideas (outside the project steps)
 
 - Rewrite the renderer in regl or twgl.js: a thin WebGL wrapper instead of Three.js, with the height field uploaded as a texture and displaced in a custom vertex shader. Smaller bundle, full pipeline control; cost is hand-writing lighting, ceramic material, camera matrices, and mouse-to-grid picking.
