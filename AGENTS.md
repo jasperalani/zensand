@@ -13,3 +13,5 @@ Digital Zen Garden: a relaxing sand simulator website. A round ceramic plate (se
 
 - Always keep project documentation up to date, including status.md (step statuses) whenever work is done or decisions are made.
 - status.md is the source of truth for the plan and progress. Write it as plain statements of what the project is — not as decision history or references to previous discussions.
+- Whenever updating any doc file, rewrite the text to describe the current decisions and how they function — never describe what a previous decision was or how it differs from the current one.
+- Commit when a change worth committing has been made and it makes sense to do so (a coherent unit of work is complete), with a clear commit message.
