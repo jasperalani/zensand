@@ -19,7 +19,7 @@ export const PLATE_INNER_RADIUS = 0.92 * PLATE_RADIUS
 const PLATE_COLOR = 0xa69cac // Lilac Ash
 
 /** Dev aid: checkerboard texture on the plate to judge sand/plate contact. */
-const DEV_CHECKER_TEXTURE = true
+const DEV_CHECKER_TEXTURE = false
 
 /** Canvas-generated black/white checkerboard, repeated over the plate UVs. */
 function makeCheckerTexture(): THREE.Texture {

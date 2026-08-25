@@ -48,8 +48,10 @@ export function createScene(canvas: HTMLCanvasElement) {
   const ambient = new THREE.AmbientLight(0xffffff, 1.9)
   scene.add(ambient)
 
+  // Low sun angle (~20°) so the plate wall throws a broad shadow
+  // across the sand and the dune relief reads clearly.
   const key = new THREE.DirectionalLight(0xfff6ec, 1.6)
-  key.position.set(-PLATE_RADIUS * 3, PLATE_RADIUS * 5, PLATE_RADIUS * 2)
+  key.position.set(-PLATE_RADIUS * 3, PLATE_RADIUS * 1.3, PLATE_RADIUS * 2)
   key.castShadow = true
   key.shadow.mapSize.set(2048, 2048)
   const shadowExtent = PLATE_RADIUS * 2
@@ -59,6 +61,11 @@ export function createScene(canvas: HTMLCanvasElement) {
   key.shadow.camera.bottom = -shadowExtent
   key.shadow.camera.far = PLATE_RADIUS * 12
   key.shadow.radius = 8
+  // Pull shadow lookups slightly along the surface normal so the wall's
+  // shadow reaches all the way to the sand/wall contact line (fixes a
+  // bright rim of shadow-acne light right where the sand meets the plate).
+  key.shadow.normalBias = 0.02
+  key.shadow.bias = -0.0002
   scene.add(key)
 
   function resize() {
