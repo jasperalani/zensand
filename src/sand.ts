@@ -22,20 +22,11 @@ const TOPPLE_RATE = 0.25
 /** Rest sand depth: plate ~80% full. */
 const REST_DEPTH = 0.8 * (PLATE_WALL_HEIGHT - PLATE_FLOOR_HEIGHT)
 
-/** Amplitude of the initial gentle unevenness, relative to rest depth. */
-const NOISE_AMPLITUDE = 0.14
+/** Amplitude of the dune relief, relative to rest depth. */
+const DUNE_AMPLITUDE = 0.55
 
-/** How many random mounds to scatter on the initial surface. */
-const MOUND_COUNT_MIN = 2
-const MOUND_COUNT_MAX = 4
-
-/** Mound height range, relative to rest depth. */
-const MOUND_HEIGHT_MIN = 0.35
-const MOUND_HEIGHT_MAX = 0.8
-
-/** Mound radius range, relative to the plate inner radius. */
-const MOUND_RADIUS_MIN = 0.12
-const MOUND_RADIUS_MAX = 0.28
+/** Base frequency of the dune noise — lower = broader dunes. */
+const DUNE_FREQUENCY = 1.6
 
 /** World size of the grid: spans the plate interior. */
 const WORLD_SIZE = 2 * PLATE_INNER_RADIUS
@@ -106,47 +97,25 @@ export function createSand(): Sand {
     }
   }
 
-  // Initial surface: rest depth plus gentle smooth noise, so the sand looks
-  // naturally settled rather than machine-flat.
-  const noise = makeValueNoise(1)
+  // Initial surface: desert-like dunes — multi-octave value noise over the
+  // whole plate, randomised each load. Broad swells with finer ripples on
+  // top; the toppling passes below relax anything steeper than the repose
+  // angle so it all reads as naturally settled sand.
+  const noise = makeValueNoise(Math.floor(Math.random() * 0xffffffff))
+  const ox = Math.random() * 100
+  const oz = Math.random() * 100
   for (let iz = 0; iz < GRID; iz++) {
     for (let ix = 0; ix < GRID; ix++) {
       const idx = iz * GRID + ix
       if (!active[idx]) continue
       const x = worldCoord(ix) / PLATE_INNER_RADIUS
       const z = worldCoord(iz) / PLATE_INNER_RADIUS
+      const f = DUNE_FREQUENCY
       const n =
-        noise(x * 2.3, z * 2.3) * 0.65 + noise(x * 5.1 + 7, z * 5.1 + 3) * 0.35
-      heights[idx] = REST_DEPTH * (1 + NOISE_AMPLITUDE * (n * 2 - 1))
-    }
-  }
-
-  // Scatter a few random mounds so the garden starts with something to rake.
-  // Each mound is a smooth cosine bump; the toppling passes below relax any
-  // slopes steeper than the repose angle into natural cones.
-  const moundCount =
-    MOUND_COUNT_MIN +
-    Math.floor(Math.random() * (MOUND_COUNT_MAX - MOUND_COUNT_MIN + 1))
-  for (let m = 0; m < moundCount; m++) {
-    // Random position, kept away from the wall so mounds settle freely.
-    const angle = Math.random() * Math.PI * 2
-    const dist = Math.sqrt(Math.random()) * PLATE_INNER_RADIUS * 0.6
-    const mx = Math.cos(angle) * dist
-    const mz = Math.sin(angle) * dist
-    const radius =
-      (MOUND_RADIUS_MIN + Math.random() * (MOUND_RADIUS_MAX - MOUND_RADIUS_MIN)) *
-      PLATE_INNER_RADIUS
-    const height =
-      (MOUND_HEIGHT_MIN + Math.random() * (MOUND_HEIGHT_MAX - MOUND_HEIGHT_MIN)) *
-      REST_DEPTH
-    for (let iz = 0; iz < GRID; iz++) {
-      for (let ix = 0; ix < GRID; ix++) {
-        const idx = iz * GRID + ix
-        if (!active[idx]) continue
-        const r = Math.hypot(worldCoord(ix) - mx, worldCoord(iz) - mz)
-        if (r >= radius) continue
-        heights[idx] += height * 0.5 * (1 + Math.cos((r / radius) * Math.PI))
-      }
+        noise(ox + x * f, oz + z * f) * 0.55 +
+        noise(ox + 13 + x * f * 2.7, oz + 41 + z * f * 2.7) * 0.3 +
+        noise(ox + 71 + x * f * 6.1, oz + 23 + z * f * 6.1) * 0.15
+      heights[idx] = REST_DEPTH * (1 + DUNE_AMPLITUDE * (n * 2 - 1))
     }
   }
 

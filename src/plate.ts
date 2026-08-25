@@ -9,10 +9,37 @@ export const PLATE_WALL_HEIGHT = 0.28 * PLATE_RADIUS
 /** Height of the interior floor (sand sits on this) in world units. */
 export const PLATE_FLOOR_HEIGHT = 0.05 * PLATE_RADIUS
 
-/** Interior radius at the floor — the area the sand occupies. */
-export const PLATE_INNER_RADIUS = 0.86 * PLATE_RADIUS
+/**
+ * Radius the sand spans. The inner wall slopes outward (0.86R at the floor,
+ * ~0.92R at rim height), so the sand extends to 0.92R and its rim embeds
+ * into the wall solid — otherwise a gap shows between sand and wall.
+ */
+export const PLATE_INNER_RADIUS = 0.92 * PLATE_RADIUS
 
 const PLATE_COLOR = 0xa69cac // Lilac Ash
+
+/** Dev aid: checkerboard texture on the plate to judge sand/plate contact. */
+const DEV_CHECKER_TEXTURE = true
+
+/** Canvas-generated black/white checkerboard, repeated over the plate UVs. */
+function makeCheckerTexture(): THREE.Texture {
+  const size = 512
+  const squares = 16
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const cell = size / squares
+  for (let y = 0; y < squares; y++) {
+    for (let x = 0; x < squares; x++) {
+      ctx.fillStyle = (x + y) % 2 === 0 ? '#ffffff' : '#333333'
+      ctx.fillRect(x * cell, y * cell, cell, cell)
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+  texture.colorSpace = THREE.SRGBColorSpace
+  return texture
+}
 
 /**
  * Round ceramic plate: flat bottom, short near-vertical walls,
@@ -51,6 +78,10 @@ export function createPlate(): THREE.Mesh {
     roughness: 0.95,
     metalness: 0,
   })
+  if (DEV_CHECKER_TEXTURE) {
+    material.map = makeCheckerTexture()
+    material.color.set(0xffffff)
+  }
 
   const plate = new THREE.Mesh(geometry, material)
   plate.castShadow = true
