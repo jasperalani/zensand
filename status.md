@@ -21,8 +21,8 @@ Steps for completing the Digital Zen Garden.
 
 ### Step 2 — The sand ✅
 - Height field: 200×200 grid over the plate's inner circle; vertices outside the circle are masked inactive and act as walls (no flow), with rim mesh vertices clamped onto the circle so the surface renders as a disc
-- Initialised ~80% of wall height, with gentle two-octave value noise for a naturally settled look
-- Toppling simulation: neighbouring cells steeper than the 33° angle of repose move sand downhill each frame (Gauss–Seidel passes); sleeps when fully settled and wakes via `markDirty()`
+- Initialised ~80% of wall height, with gentle two-octave value noise plus 2–4 randomly placed cosine-bump mounds, pre-settled into natural cones before the first frame
+- Toppling simulation: neighbouring cells steeper than the 33° angle of repose move sand downhill each frame (Gauss–Seidel passes over the 8-neighbourhood, diagonal threshold scaled by √2 so cones settle round); sleeps when fully settled and wakes via `markDirty()`
 - Rendering: `PlaneGeometry` displaced from the height field each dirty frame, recomputed normals, casts/receives shadows
 - Sand colour: Almond Cream `#f1dac4`, matte cartoon-like shading
 

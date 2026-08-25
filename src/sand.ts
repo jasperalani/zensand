@@ -25,14 +25,29 @@ const REST_DEPTH = 0.8 * (PLATE_WALL_HEIGHT - PLATE_FLOOR_HEIGHT)
 /** Amplitude of the initial gentle unevenness, relative to rest depth. */
 const NOISE_AMPLITUDE = 0.14
 
+/** How many random mounds to scatter on the initial surface. */
+const MOUND_COUNT_MIN = 2
+const MOUND_COUNT_MAX = 4
+
+/** Mound height range, relative to rest depth. */
+const MOUND_HEIGHT_MIN = 0.35
+const MOUND_HEIGHT_MAX = 0.8
+
+/** Mound radius range, relative to the plate inner radius. */
+const MOUND_RADIUS_MIN = 0.12
+const MOUND_RADIUS_MAX = 0.28
+
 /** World size of the grid: spans the plate interior. */
 const WORLD_SIZE = 2 * PLATE_INNER_RADIUS
 
 /** Distance between neighbouring grid vertices in world units. */
 const CELL_SIZE = WORLD_SIZE / (GRID - 1)
 
-/** Max height difference between neighbours before sand topples. */
+/** Max height difference between orthogonal neighbours before sand topples. */
 const MAX_DIFF = Math.tan(REPOSE_ANGLE) * CELL_SIZE
+
+/** Max height difference between diagonal neighbours (√2 further apart). */
+const MAX_DIFF_DIAG = MAX_DIFF * Math.SQRT2
 
 export interface Sand {
   mesh: THREE.Mesh
@@ -106,6 +121,35 @@ export function createSand(): Sand {
     }
   }
 
+  // Scatter a few random mounds so the garden starts with something to rake.
+  // Each mound is a smooth cosine bump; the toppling passes below relax any
+  // slopes steeper than the repose angle into natural cones.
+  const moundCount =
+    MOUND_COUNT_MIN +
+    Math.floor(Math.random() * (MOUND_COUNT_MAX - MOUND_COUNT_MIN + 1))
+  for (let m = 0; m < moundCount; m++) {
+    // Random position, kept away from the wall so mounds settle freely.
+    const angle = Math.random() * Math.PI * 2
+    const dist = Math.sqrt(Math.random()) * PLATE_INNER_RADIUS * 0.6
+    const mx = Math.cos(angle) * dist
+    const mz = Math.sin(angle) * dist
+    const radius =
+      (MOUND_RADIUS_MIN + Math.random() * (MOUND_RADIUS_MAX - MOUND_RADIUS_MIN)) *
+      PLATE_INNER_RADIUS
+    const height =
+      (MOUND_HEIGHT_MIN + Math.random() * (MOUND_HEIGHT_MAX - MOUND_HEIGHT_MIN)) *
+      REST_DEPTH
+    for (let iz = 0; iz < GRID; iz++) {
+      for (let ix = 0; ix < GRID; ix++) {
+        const idx = iz * GRID + ix
+        if (!active[idx]) continue
+        const r = Math.hypot(worldCoord(ix) - mx, worldCoord(iz) - mz)
+        if (r >= radius) continue
+        heights[idx] += height * 0.5 * (1 + Math.cos((r / radius) * Math.PI))
+      }
+    }
+  }
+
   // Geometry: plane displaced by the height field. Rim vertices are clamped
   // onto the inner circle so the mesh reads as a disc, not a square.
   const geometry = new THREE.PlaneGeometry(
@@ -145,22 +189,31 @@ export function createSand(): Sand {
       for (let ix = 0; ix < GRID; ix++) {
         const idx = iz * GRID + ix
         if (!active[idx]) continue
-        // 4-neighbourhood; inactive neighbours act as walls (no flow).
-        if (ix > 0) moved += settlePair(idx, idx - 1)
-        if (ix < GRID - 1) moved += settlePair(idx, idx + 1)
-        if (iz > 0) moved += settlePair(idx, idx - GRID)
-        if (iz < GRID - 1) moved += settlePair(idx, idx + GRID)
+        // 8-neighbourhood; inactive neighbours act as walls (no flow).
+        // Diagonals use a √2-scaled threshold so cones settle round.
+        if (ix > 0) moved += settlePair(idx, idx - 1, MAX_DIFF)
+        if (ix < GRID - 1) moved += settlePair(idx, idx + 1, MAX_DIFF)
+        if (iz > 0) moved += settlePair(idx, idx - GRID, MAX_DIFF)
+        if (iz < GRID - 1) moved += settlePair(idx, idx + GRID, MAX_DIFF)
+        if (ix > 0 && iz > 0)
+          moved += settlePair(idx, idx - GRID - 1, MAX_DIFF_DIAG)
+        if (ix < GRID - 1 && iz > 0)
+          moved += settlePair(idx, idx - GRID + 1, MAX_DIFF_DIAG)
+        if (ix > 0 && iz < GRID - 1)
+          moved += settlePair(idx, idx + GRID - 1, MAX_DIFF_DIAG)
+        if (ix < GRID - 1 && iz < GRID - 1)
+          moved += settlePair(idx, idx + GRID + 1, MAX_DIFF_DIAG)
       }
     }
     return moved
   }
 
   /** Topple sand between two cells if their slope exceeds the repose angle. */
-  function settlePair(a: number, b: number): number {
+  function settlePair(a: number, b: number, maxDiff: number): number {
     if (!active[b]) return 0
     const diff = heights[a] - heights[b]
-    if (diff > MAX_DIFF) {
-      const amount = (diff - MAX_DIFF) * TOPPLE_RATE
+    if (diff > maxDiff) {
+      const amount = (diff - maxDiff) * TOPPLE_RATE
       heights[a] -= amount
       heights[b] += amount
       return amount
@@ -178,8 +231,9 @@ export function createSand(): Sand {
     geometry.computeVertexNormals()
   }
 
-  // Settle the initial noise so nothing starts steeper than the repose angle.
-  for (let i = 0; i < 8; i++) topplePass()
+  // Settle the initial surface so nothing starts steeper than the repose
+  // angle — mounds relax into natural cones before the first frame.
+  for (let i = 0; i < 300; i++) if (topplePass() < 1e-6) break
 
   function update() {
     if (!dirty) return
