@@ -13,11 +13,11 @@ Steps for completing the Digital Zen Garden.
 ### Step 0 — Project setup ✅
 - Vite + TypeScript + Three.js project scaffolded, dependencies installed
 
-### Step 1 — The plate ⬜
-- Model the plate in 3D: round, flat bottom, short walls, shape from the reference image
-- Plate colour: Lilac Ash `#a69cac`, with soft cartoon-like shadows for depth
-- Fixed camera at the oblique side-down angle from the reference image
-- Walls act as boundaries: sand piles up against them
+### Step 1 — The plate ✅
+- Plate modelled in 3D (lathe geometry): round, flat bottom, short walls with inward-stepped rim, shape from the reference image
+- Plate colour: Lilac Ash `#a69cac`, soft cartoon-like shading (matte material, strong ambient fill + gentle key light)
+- Fixed camera at the oblique side-down angle from the reference image (~30° elevation)
+- Walls act as boundaries: sand piles up against them (enforced by the sand sim in Step 2)
 
 ### Step 2 — The sand ⬜
 - Height-field grid covering the plate interior; cells outside the round rim masked as inactive walls
