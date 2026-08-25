@@ -144,12 +144,33 @@ export function createSand(): Sand {
     }
   }
 
+  // Baked contact occlusion: vertex colours darken the sand slightly where
+  // it meets the wall (like ambient occlusion in a bowl). This hides the
+  // residual bright line right at the sand/wall intersection that shadow
+  // mapping alone can't resolve.
+  const AO_WIDTH = 0.12 // fraction of the radius the darkening spans
+  const AO_STRENGTH = 0.6 // max darkening at the wall
+  const colors = new Float32Array(positions.count * 3)
+  for (let v = 0; v < positions.count; v++) {
+    const r = Math.hypot(positions.getX(v), positions.getZ(v))
+    const t = (r / PLATE_INNER_RADIUS - (1 - AO_WIDTH)) / AO_WIDTH
+    const occlusion =
+      t > 0 ? 1 - AO_STRENGTH * Math.min(t, 1) * Math.min(t, 1) : 1
+    colors[v * 3] = occlusion
+    colors[v * 3 + 1] = occlusion
+    colors[v * 3 + 2] = occlusion
+  }
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+
+  const grainTextures = makeGrainTextures()
   const material = new THREE.MeshStandardMaterial({
     color: SAND_COLOR,
     roughness: 1,
     metalness: 0,
-    bumpMap: makeGrainTexture(),
+    map: grainTextures.color,
+    bumpMap: grainTextures.bump,
     bumpScale: 2.2,
+    vertexColors: true,
   })
   const mesh = new THREE.Mesh(geometry, material)
   mesh.receiveShadow = true
@@ -231,28 +252,44 @@ export function createSand(): Sand {
 }
 
 /**
- * Grain bump map: per-pixel random noise, slightly blurred, tiled across
- * the sand so the surface reads as coarse granular sand instead of cloth.
+ * Grain textures: per-pixel random noise tiled across the sand so the
+ * surface reads as coarse granular sand instead of cloth. The same noise
+ * feeds two maps — a bump map for relief under directional light, and a
+ * subtle colour map so the grain stays visible in shadow, where bump
+ * shading vanishes (ambient light has no direction to shade bumps with).
  */
-function makeGrainTexture(): THREE.Texture {
+function makeGrainTextures(): { bump: THREE.Texture; color: THREE.Texture } {
   const size = 256
-  const grain = 2 // pixels per sand grain — bigger = coarser
+  const grain = 1 // pixels per sand grain — bigger = coarser
   const cells = size / grain
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size
-  const ctx = canvas.getContext('2d')!
+  const bumpCanvas = document.createElement('canvas')
+  const colorCanvas = document.createElement('canvas')
+  bumpCanvas.width = bumpCanvas.height = size
+  colorCanvas.width = colorCanvas.height = size
+  const bumpCtx = bumpCanvas.getContext('2d')!
+  const colorCtx = colorCanvas.getContext('2d')!
   for (let y = 0; y < cells; y++) {
     for (let x = 0; x < cells; x++) {
-      const v = Math.floor(128 + (Math.random() - 0.5) * 240)
-      ctx.fillStyle = `rgb(${v},${v},${v})`
-      ctx.fillRect(x * grain, y * grain, grain, grain)
+      const n = Math.random() - 0.5
+      const b = Math.floor(128 + n * 240)
+      bumpCtx.fillStyle = `rgb(${b},${b},${b})`
+      bumpCtx.fillRect(x * grain, y * grain, grain, grain)
+      // Near-white with mild speckle: multiplies the sand colour without
+      // shifting its overall tone much.
+      const c = Math.floor(246 + n * 18)
+      colorCtx.fillStyle = `rgb(${c},${c},${c})`
+      colorCtx.fillRect(x * grain, y * grain, grain, grain)
     }
   }
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-  texture.repeat.set(8, 8)
-  texture.anisotropy = 8
-  return texture
+  const bump = new THREE.CanvasTexture(bumpCanvas)
+  const color = new THREE.CanvasTexture(colorCanvas)
+  color.colorSpace = THREE.SRGBColorSpace
+  for (const texture of [bump, color]) {
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+    texture.repeat.set(8, 8)
+    texture.anisotropy = 8
+  }
+  return { bump, color }
 }
 
 /**
