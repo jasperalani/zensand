@@ -1,6 +1,6 @@
-# Colour Palette
+[← Back to README](README.md)
 
-Part of the [Digital Zen Garden](README.md).
+# Colour Palette
 
 | Name | Hex | Use |
 | --- | --- | --- |

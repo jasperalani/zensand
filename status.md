@@ -1,6 +1,8 @@
+[← Back to README](README.md)
+
 # Project Status
 
-Steps for completing the Digital Zen Garden. See [README.md](README.md) for what the project is.
+Steps for completing the Digital Zen Garden.
 
 ## Status legend
 
